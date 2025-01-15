@@ -1,0 +1,26 @@
+# Go build artifacts
+/build/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Dependency directories
+/node_modules/
+/vendor/
+
+# Log files
+*.log
+
+# IDE specific files
+.idea/
+.vscode/
+*.iml
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Wails specific
+/frontend/dist/
