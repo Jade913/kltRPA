@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"kltRPA/utils"
 )
 
 // App struct
@@ -26,11 +27,18 @@ func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }
 
-// Login checks the username and password
+// omo登录
 func (a *App) Login(username, password string) string {
-	// 简单的登录
-	if username == "admin" && password == "password" {
+	omo := utils.NewOmoIntegrate("omo.kelote.com", "klt_omo", username, password)
+
+	success, err := omo.Login()
+	if success {
 		return "Login successful!"
+	} else {
+		if err != nil {
+			return fmt.Sprintf("Login failed: %v", err)
+		} else {
+			return "Invalid username or password."
+		}
 	}
-	return "Invalid username or password."
 }
