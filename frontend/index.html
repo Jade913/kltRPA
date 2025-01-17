@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>kltRPA</title>
-    <link rel="stylesheet" href="src/style.css">
+    <link rel="stylesheet" href="./src/style.css">
 </head>
 <body>
     <div id="app">
@@ -20,6 +20,11 @@
         <button id="loginButton">登陆</button>
         <p id="status"></p>
     </div>
+
+    <div id="logContainer" style="display: none; border: 1px solid #ccc; padding: 10px; max-height: 200px; overflow-y: auto;">
+        <pre id="logContent"></pre>
+    </div>
+
     <script src="./src/main.js" type="module"></script>
 </body>
 </html>
