@@ -10,17 +10,18 @@
 }
 
 input {
-    width: 100%;
+    width: 30%;
     padding: 8px;
     margin: 5px 0;
-    border: 1px solid #ddd;
+    border: 1px solid #c6c4c4;
     border-radius: 4px;
 }
 
 button {
-    width: 100%;
-    padding: 10px;
-    background-color: #4CAF50;
+    width: auto;
+    padding: 8px 16px;
+    margin: 5px;
+    background-color: #73c879;
     color: white;
     border: none;
     border-radius: 4px;
@@ -28,7 +29,7 @@ button {
 }
 
 button:hover {
-    background-color: #45a049;
+    background-color: #83c6cb;
 }
 
 #status {

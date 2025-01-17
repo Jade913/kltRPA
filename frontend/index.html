@@ -8,12 +8,18 @@
 </head>
 <body>
     <div id="app">
-        <h1>Login</h1>
-        <input type="text" id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Password">
+        <h1>欢迎使用KLT RPA</h1>
+        <div class="form-group">
+            <label for="username">用户名：</label>
+            <input type="text" id="username" placeholder="请输入OMO账号">
+        </div>
+        <div class="form-group">
+            <label for="password">密码：</label>
+            <input type="password" id="password" placeholder="请输入密码">
+        </div>
         <button id="loginButton">登陆</button>
         <p id="status"></p>
     </div>
-    <script src="src/js/main.js"></script>
+    <script src="./src/main.js" type="module"></script>
 </body>
 </html>

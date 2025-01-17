@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"kltRPA/models"
 	"kltRPA/utils"
 )
 
@@ -41,4 +42,8 @@ func (a *App) Login(username, password string) string {
 			return "Invalid username or password."
 		}
 	}
+}
+
+func (a *App) RunRPA() {
+	models.RunRPA()
 }
