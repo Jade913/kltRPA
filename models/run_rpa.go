@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func RunRPA() {
+func RunRPA(selectedCampuses []string) {
 	log.Println("开始执行RPA...")
 
 	// 初始化 Chrome
@@ -39,11 +39,6 @@ func RunRPA() {
 		return
 	}
 	log.Printf("创建输出文件: %s", filePath)
-
-	// 设置要处理的校区
-	selectedCampuses := []string{
-		"重庆", "北京", "杭州",
-	}
 
 	// 开始下载简历
 	err = DownloadResume(ctx, selectedCampuses, filePath)

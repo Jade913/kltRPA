@@ -4,10 +4,14 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"io"
 	"kltRPA/logs"
 	"kltRPA/models"
 	"kltRPA/utils"
+	"net/http"
 	"os"
+	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -49,8 +53,8 @@ func (a *App) Login(username, password string) string {
 	}
 }
 
-func (a *App) RunRPA() {
-	models.RunRPA()
+func (a *App) RunRPA(selectedCampuses []string) {
+	models.RunRPA(selectedCampuses)
 }
 
 // GetLogs returns the last 30 lines of the log file
@@ -79,4 +83,59 @@ func (a *App) GetLogs() (string, error) {
 
 	// 使用换行符连接每一行
 	return fmt.Sprintf("%s", strings.Join(lines, "\n")), nil
+}
+
+// GetLatestTable returns the path of the latest table file
+func (a *App) GetLatestTable() (string, error) {
+	dir := "export_data/table-data"
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return "", fmt.Errorf("无法读取目录: %v", err)
+	}
+
+	// Convert []os.DirEntry to []os.FileInfo
+	fileInfos := make([]os.FileInfo, 0, len(files))
+	for _, file := range files {
+		info, err := file.Info()
+		if err != nil {
+			return "", fmt.Errorf("无法获取文件信息: %v", err)
+		}
+		fileInfos = append(fileInfos, info)
+	}
+
+	// 按修改时间排序文件
+	sort.Slice(fileInfos, func(i, j int) bool {
+		return fileInfos[i].ModTime().After(fileInfos[j].ModTime())
+	})
+
+	// 找到最新的表格文件
+	for _, fileInfo := range fileInfos {
+		if !fileInfo.IsDir() && filepath.Ext(fileInfo.Name()) == ".xlsx" {
+			return filepath.Join(dir, fileInfo.Name()), nil
+		}
+	}
+
+	return "", fmt.Errorf("没有找到表格文件")
+}
+
+// ServeFile serves a file from the given path
+func (a *App) ServeFile(w http.ResponseWriter, r *http.Request) {
+	filePath := r.URL.Query().Get("path")
+	if filePath == "" {
+		http.Error(w, "File path is required", http.StatusBadRequest)
+		return
+	}
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("无法打开文件: %v", err), http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+
+	// 使用 io.Copy 直接将文件内容写入响应
+	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	if _, err := io.Copy(w, file); err != nil {
+		http.Error(w, fmt.Sprintf("无法读取文件: %v", err), http.StatusInternalServerError)
+	}
 }
