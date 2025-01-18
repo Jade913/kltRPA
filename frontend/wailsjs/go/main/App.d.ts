@@ -8,8 +8,14 @@ export function GetLogs():Promise<string>;
 
 export function Greet(arg1:string):Promise<string>;
 
+export function ImportTableFromExcel(arg1:string):Promise<Array<any>>;
+
 export function Login(arg1:string,arg2:string):Promise<string>;
 
 export function RunRPA(arg1:Array<string>):Promise<void>;
 
+export function SaveFile(arg1:string,arg2:Array<number>):Promise<void>;
+
 export function ServeFile(arg1:http.ResponseWriter,arg2:http.Request):Promise<void>;
+
+export function UpdateOmo(arg1:Array<{[key: string]: any}>):Promise<void>;

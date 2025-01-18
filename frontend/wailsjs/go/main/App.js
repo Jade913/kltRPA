@@ -14,6 +14,10 @@ export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
 
+export function ImportTableFromExcel(arg1) {
+  return window['go']['main']['App']['ImportTableFromExcel'](arg1);
+}
+
 export function Login(arg1, arg2) {
   return window['go']['main']['App']['Login'](arg1, arg2);
 }
@@ -22,6 +26,14 @@ export function RunRPA(arg1) {
   return window['go']['main']['App']['RunRPA'](arg1);
 }
 
+export function SaveFile(arg1, arg2) {
+  return window['go']['main']['App']['SaveFile'](arg1, arg2);
+}
+
 export function ServeFile(arg1, arg2) {
   return window['go']['main']['App']['ServeFile'](arg1, arg2);
+}
+
+export function UpdateOmo(arg1) {
+  return window['go']['main']['App']['UpdateOmo'](arg1);
 }

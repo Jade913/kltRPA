@@ -26,5 +26,5 @@ Thumbs.db
 /frontend/dist/
 /chrome-data/
 /export_data/
-/node_modules/
+/frontend/node_modules/
 __debug_bin*

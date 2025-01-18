@@ -67,3 +67,38 @@ func (o *OmoIntegrate) Login() (bool, error) {
 	log.Println("登录失败，UID 为 0")
 	return false, nil
 }
+
+func (o *OmoIntegrate) UpdateOmo(data []map[string]interface{}) error {
+	rpcUrl := fmt.Sprintf("https://%s/xmlrpc/2/object", o.server)
+	log.Printf("开始更新 OMO 系统，RPC URL: %s", rpcUrl)
+
+	client, err := xmlrpc.NewClient(rpcUrl, nil)
+	if err != nil {
+		log.Printf("创建 XML-RPC 客户端失败: %v", err)
+		return err
+	}
+	defer client.Close()
+
+	for i, record := range data {
+		var result interface{}
+		args := []interface{}{
+			o.db,
+			o.uid,
+			o.password,
+			"kltcrm.import.customer",
+			"create_customer",
+			[]interface{}{i + 1, record},
+		}
+
+		err = client.Call("execute_kw", args, &result)
+		if err != nil {
+			log.Printf("调用 create_customer 失败: %v", err)
+			return err
+		}
+
+		log.Printf("记录更新成功: %v, 结果: %v", record, result)
+	}
+
+	log.Println("所有记录已成功更新到 OMO 系统")
+	return nil
+}

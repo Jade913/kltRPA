@@ -17,7 +17,8 @@ import (
 
 // App struct
 type App struct {
-	ctx context.Context
+	ctx         context.Context
+	omoInstance *utils.OmoIntegrate
 }
 
 // NewApp creates a new App application struct
@@ -43,6 +44,7 @@ func (a *App) Login(username, password string) string {
 
 	success, err := omo.Login()
 	if success {
+		a.omoInstance = omo // 保存登录成功的实例
 		return "Login successful!"
 	} else {
 		if err != nil {
@@ -51,6 +53,13 @@ func (a *App) Login(username, password string) string {
 			return "Invalid username or password."
 		}
 	}
+}
+
+func (a *App) UpdateOmo(data []map[string]interface{}) error {
+	if a.omoInstance == nil {
+		return fmt.Errorf("未登录！")
+	}
+	return a.omoInstance.UpdateOmo(data)
 }
 
 func (a *App) RunRPA(selectedCampuses []string) {
@@ -138,4 +147,12 @@ func (a *App) ServeFile(w http.ResponseWriter, r *http.Request) {
 	if _, err := io.Copy(w, file); err != nil {
 		http.Error(w, fmt.Sprintf("无法读取文件: %v", err), http.StatusInternalServerError)
 	}
+}
+
+func (a *App) ImportTableFromExcel(filePath string) ([][]string, error) {
+	return utils.ImportTableFromExcel(filePath)
+}
+
+func (a *App) SaveFile(filePath string, data []byte) error {
+	return utils.SaveFile(filePath, data)
 }

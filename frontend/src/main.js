@@ -1,5 +1,8 @@
-import { Login, GetLogs, RunRPA, GetLatestTable } from '../wailsjs/go/main/App';
-// import { updateOMOData } from '../wailsjs/go/main/App';
+import './style.css';
+import './app.css';
+import * as XLSX from 'xlsx';
+import { Login, GetLogs, RunRPA } from '../wailsjs/go/main/App';
+import { UpdateOmo } from '../wailsjs/go/main/App';
 window.addEventListener("DOMContentLoaded", () => {
     console.log("DOM fully loaded and parsed");
 
@@ -30,14 +33,19 @@ window.addEventListener("DOMContentLoaded", () => {
                     <h1>自动化处理简历</h1>
                     <button id="selectCampusButton">选择校区</button>
                     <button id="fetchResumeButton">抓取&下载简历</button>
-                    <button id="importTableButton">导入表格</button>
+                    <div class="form-group">
+                        <label for="fileUpload">上传表格：</label>
+                        <input type="file" id="fileUpload" accept=".csv, .xlsx, .xls">
+                        <button id="uploadButton">上传</button>
+                    </div>
+                    
                     <button id="updateOMOButton">更新至OMO</button>
                     <button id="logoutButton">退出登录</button>
                     <button id="toggleLogButton">显示日志</button>
                     <div id="logContainer" style="display: none; border: 1px solid #ccc; padding: 10px; max-height: 200px; overflow-y: auto;">
                         <pre id="logContent"></pre>
                     </div>
-                    <div id="tableContent"></div>
+                    <div id="tableContainer"></div>
                 `;
 
                 // 清空日志内容
@@ -92,33 +100,137 @@ window.addEventListener("DOMContentLoaded", () => {
                     });
                 });
 
-                document.getElementById('updateOMOButton').addEventListener('click', () => {
-                    const tableContent = document.getElementById('tableContent');
-                    const rows = tableContent.querySelectorAll('tr');
+                let savedJsonData = null; // 用于保存上传的表格数据
 
-                    if (rows.length <= 1) {
-                        alert("请先打开文件");
+                document.getElementById('uploadButton').addEventListener('click', () => {
+                    console.log("uploadButton");
+                    const fileInput = document.getElementById('fileUpload');
+                    const file = fileInput.files[0];
+                    if (!file) {
+                        alert("请选择一个文件！");
                         return;
                     }
 
-                    // 逐条传入OMO接口
-                    for (let i = 1; i < rows.length; i++) {
-                        const cells = rows[i].querySelectorAll('td');
-                        const rowData = Array.from(cells).map(cell => cell.innerText);
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            const firstSheetName = workbook.SheetNames[0];
+                            const worksheet = workbook.Sheets[firstSheetName];
 
-                        // 调用后端接口
-                        // updateOMO(rowData).then(() => {
-                        //     console.log(`第${i}行数据更新成功`);
-                        // }).catch(err => {
-                        //     console.error(`第${i}行数据更新失败:`, err);
-                        // });
-                    }
+                            // 将工作表转换为 JSON 并保存
+                            savedJsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                            console.log("表格数据:", savedJsonData);
+
+                            // 显示在前端
+                            const tableContainer = document.getElementById('tableContainer');
+                            let html = '<table border="1"><tr>';
+
+                            // 表头
+                            savedJsonData[0].forEach(header => {
+                                html += `<th>${header}</th>`;
+                            });
+                            html += '</tr>';
+
+                            // 表格内容
+                            for (let i = 1; i < savedJsonData.length; i++) {
+                                html += '<tr>';
+                                savedJsonData[i].forEach(cell => {
+                                    html += `<td>${cell}</td>`;
+                                });
+                                html += '</tr>';
+                            }
+                            html += '</table>';
+
+                            tableContainer.innerHTML = html;
+                        } catch (error) {
+                            console.error("解析Excel文件出错:", error);
+                            alert("解析Excel文件出错，请检查文件格式！错误信息：" + error.message);
+                        }
+                    };
+                    reader.readAsArrayBuffer(file);
                 });
 
-                // function updateOMO(rowData) {
-                //     // 后端方法 updateOMOData
-                //     return updateOMOData(rowData);
-                // }
+                document.getElementById('updateOMOButton').addEventListener('click', () => {
+                    if (!savedJsonData || savedJsonData.length <= 1) {
+                        alert("请先上传并打开文件");
+                        return;
+                    }
+
+                    // 添加结果列到表格
+                    const tableContainer = document.getElementById('tableContainer');
+                    const table = tableContainer.querySelector('table');
+                    
+                    // 检查并添加结果列
+                    const firstHeader = table.rows[0].cells[0];
+                    if (firstHeader.textContent !== '更新结果') {
+                        // 为每一行添加新列
+                        for (let i = 0; i < table.rows.length; i++) {
+                            const newCell = table.rows[i].insertCell(0);
+                            if (i === 0) {
+                                newCell.outerHTML = '<th>更新结果</th>';
+                            }
+                        }
+                    }
+
+                    // 字段映射表
+                    const fieldMapping = {
+                        "序号": "row_no",
+                        "简历编号": "resumeNumber",
+                        "意向课程": "regit_course",  
+                        "手机": "mobile_phone",
+                        "校区": "campus_id",         
+                        "姓名": "name",
+                        "性别": "gender",
+                        "邮箱": "email",
+                        "学历": "degree",           
+                        "工作年限": "work_life",    
+                        "应聘职位": "job_objective", 
+                        "居住地": "domicile",       
+                        "在职情况": "description",   
+                        "来源": "source"
+                    };
+
+                    // 转换数据格式
+                    const headers = savedJsonData[0];
+                    const records = savedJsonData.slice(1).map((row, index) => {
+                        const record = {};
+                        headers.forEach((header, colIndex) => {
+                            if (fieldMapping[header]) {
+                                record[fieldMapping[header]] = row[colIndex] || '';
+                            }
+                        });
+                        record['row_no'] = index + 1;
+                        return record;
+                    });
+
+                    console.log("发送的数据:", records);  // 调试用
+
+                    UpdateOmo(records).then((result) => {
+                        // 检查返回的结果
+                        if (result && result.msg_type === '失败') {
+                            // 更新表格中的结果列
+                            const firstRow = table.rows[1];  // 第一个数据行
+                            const resultCell = firstRow.cells[0];
+                            resultCell.textContent = result.msg || result.msg_base || '更新失败';
+                            resultCell.style.backgroundColor = '#ffebee';  // 失败用红色背景
+                            
+                            // 显示错误消息
+                            alert(`更新失败：${result.msg || result.msg_base}`);
+                        } else {
+                            // 更新成功
+                            const firstRow = table.rows[1];
+                            const resultCell = firstRow.cells[0];
+                            resultCell.textContent = '更新成功';
+                            resultCell.style.backgroundColor = '#e8f5e9';  // 成功用绿色背景
+                            alert("更新成功！");
+                        }
+                    }).catch(err => {
+                        console.error("更新失败:", err);
+                        alert("更新失败，请检查控制台日志。");
+                    });
+                });
 
                 document.getElementById('logoutButton').addEventListener('click', () => {
                     console.log("退出登录");
@@ -138,7 +250,6 @@ window.addEventListener("DOMContentLoaded", () => {
                     const logContainer = document.getElementById('logContainer');
                     if (logContainer.style.display === "none") {
                         GetLogs().then(data => {
-                            console.log("最新日志内容:", data);
                             const logContentElement = document.getElementById('logContent');
                             logContentElement.innerText = data;
                             logContainer.style.display = "block";
@@ -149,52 +260,6 @@ window.addEventListener("DOMContentLoaded", () => {
                         document.getElementById('toggleLogButton').innerText = "显示日志";
                     }
                 });
-
-                document.getElementById('importTableButton').addEventListener('click', () => {
-                    // 创建一个隐藏的文件输入元素
-                    const fileInput = document.createElement('input');
-                    fileInput.type = 'file';
-                    fileInput.accept = '.xlsx,.xls,.xlsm'; // 只接受Excel文件
-
-                    fileInput.onchange = async (event) => {
-                        try {
-                            const file = event.target.files[0];
-                            if (file) {
-                                console.log(`选择的文件: ${file.name}`);
-                                await importTableFromExcel(file);
-                            }
-                        } catch (error) {
-                            console.error("文件处理出错:", error);
-                            alert("文件处理出错，请重试！");
-                        }
-                    };
-
-                    // 触发文件选择对话框
-                    fileInput.click();
-                });
-
-                async function importTableFromExcel(file) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        try {
-                            const data = new Uint8Array(e.target.result);
-                            const workbook = XLSX.read(data, { type: 'array' });
-                            const firstSheetName = workbook.SheetNames[0];
-                            const worksheet = workbook.Sheets[firstSheetName];
-
-                            // 将工作表转换为 JSON
-                            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                            console.log("表格数据:", jsonData);
-
-                            // 显示在前端
-                            displayTableData(jsonData);
-                        } catch (error) {
-                            console.error("解析Excel文件出错:", error);
-                            alert("解析Excel文件出错，请检查文件格式！");
-                        }
-                    };
-                    reader.readAsArrayBuffer(file);
-                }
 
                 function displayTableData(data) {
                     const tableContent = document.getElementById('tableContent');
@@ -221,14 +286,13 @@ window.addEventListener("DOMContentLoaded", () => {
 
                 setInterval(() => {
                     GetLogs().then(data => {
-                        console.log("日志内容:", data);
                         // 追加新日志内容
                         logContentElement.innerText += data + '\n';
                     }).catch(err => console.error("获取日志失败:", err));
                 }, 5000);
 
             }).catch(err => {
-                console.error("Login failed:", err);
+                alert("Login failed:", err);
                 statusElement.innerText = "Login failed: " + err;
             });
         });
