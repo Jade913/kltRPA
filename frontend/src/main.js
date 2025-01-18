@@ -214,16 +214,21 @@ window.addEventListener("DOMContentLoaded", () => {
                             const firstRow = table.rows[1];  // 第一个数据行
                             const resultCell = firstRow.cells[0];
                             resultCell.textContent = result.msg || result.msg_base || '更新失败';
-                            resultCell.style.backgroundColor = '#ffebee';  // 失败用红色背景
+                            resultCell.className = 'status-error';  // 使用CSS类替代直接设置样式
                             
                             // 显示错误消息
                             alert(`更新失败：${result.msg || result.msg_base}`);
+                        } else if (result && result.msg_type === '重复') {
+                            const firstRow = table.rows[1];
+                            const resultCell = firstRow.cells[0];
+                            resultCell.textContent = `状态：${result.msg_type}`;
+                            resultCell.className = 'status-duplicate';  // 使用CSS类
                         } else {
                             // 更新成功
                             const firstRow = table.rows[1];
                             const resultCell = firstRow.cells[0];
                             resultCell.textContent = '更新成功';
-                            resultCell.style.backgroundColor = '#e8f5e9';  // 成功用绿色背景
+                            resultCell.className = 'status-success';  // 使用CSS类
                             alert("更新成功！");
                         }
                     }).catch(err => {
