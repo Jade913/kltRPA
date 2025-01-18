@@ -13,9 +13,9 @@ window.addEventListener("DOMContentLoaded", () => {
     if (usernameElement && passwordElement) {
         usernameElement.value = "wujinxuan@kelote.com";
         passwordElement.value = "chill000";
-        console.log("Default username and password set");
+        console.log("默认账号&密码");
     } else {
-        console.error("Username or password element not found");
+        console.error("账号&密码未找到");
     }
 
     const loginButton = document.getElementById("loginButton");
@@ -333,6 +333,12 @@ function displayTable(jsonData, tableContainer) {
 
         const table = tableContainer.querySelector('table');
         const rows = Array.from(table.querySelectorAll('tr')).slice(1); // 跳过表头
+        
+        // 用于存储筛选后的数据
+        const filteredData = [];
+        // 获取表头
+        const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent);
+        filteredData.push(headers);
 
         rows.forEach(row => {
             const cells = row.cells;
@@ -345,7 +351,21 @@ function displayTable(jsonData, tableContainer) {
                           (!positionFilter || position.includes(positionFilter));
 
             row.style.display = showRow ? '' : 'none';
+
+            // 如果行符合筛选条件，将其数据添加到 filteredData
+            if (showRow) {
+                const rowData = Array.from(cells).map(cell => cell.textContent);
+                filteredData.push(rowData);
+            }
         });
+
+        // 在控制台输出筛选后的数据
+        console.log("筛选条件:", {
+            successOnly,
+            campusFilter,
+            positionFilter
+        });
+        console.log("筛选后的数据:", filteredData);
     });
 }
 
