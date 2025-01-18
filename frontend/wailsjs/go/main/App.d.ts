@@ -18,4 +18,4 @@ export function SaveFile(arg1:string,arg2:Array<number>):Promise<void>;
 
 export function ServeFile(arg1:http.ResponseWriter,arg2:http.Request):Promise<void>;
 
-export function UpdateOmo(arg1:Array<{[key: string]: any}>):Promise<void>;
+export function UpdateOmo(arg1:Array<{[key: string]: any}>):Promise<Array<{[key: string]: any}>>;

@@ -37,11 +37,13 @@ window.addEventListener("DOMContentLoaded", () => {
                         <label for="fileUpload">上传表格：</label>
                         <input type="file" id="fileUpload" accept=".csv, .xlsx, .xls">
                         <button id="uploadButton">上传</button>
+                        <button id="updateOMOButton">更新至OMO</button>
                     </div>
                     
-                    <button id="updateOMOButton">更新至OMO</button>
-                    <button id="logoutButton">退出登录</button>
-                    <button id="toggleLogButton">显示日志</button>
+                    <div class="top-right-buttons">
+                        <button id="toggleLogButton">显示日志</button>
+                        <button id="logoutButton">退出登录</button>
+                    </div>
                     <div id="logContainer" style="display: none; border: 1px solid #ccc; padding: 10px; max-height: 200px; overflow-y: auto;">
                         <pre id="logContent"></pre>
                     </div>
@@ -207,30 +209,30 @@ window.addEventListener("DOMContentLoaded", () => {
 
                     console.log("发送的数据:", records);  // 调试用
 
-                    UpdateOmo(records).then((result) => {
-                        // 检查返回的结果
-                        if (result && result.msg_type === '失败') {
-                            // 更新表格中的结果列
-                            const firstRow = table.rows[1];  // 第一个数据行
-                            const resultCell = firstRow.cells[0];
-                            resultCell.textContent = result.msg || result.msg_base || '更新失败';
-                            resultCell.className = 'status-error';  // 使用CSS类替代直接设置样式
+                    UpdateOmo(records).then((results) => {
+                        // 更新每一行的结果
+                        results.forEach((result, index) => {
+                            const row = table.rows[index + 1];  // +1 因为第一行是表头
+                            const resultCell = row.cells[0];
                             
-                            // 显示错误消息
-                            alert(`更新失败：${result.msg || result.msg_base}`);
-                        } else if (result && result.msg_type === '重复') {
-                            const firstRow = table.rows[1];
-                            const resultCell = firstRow.cells[0];
-                            resultCell.textContent = `状态：${result.msg_type}`;
-                            resultCell.className = 'status-duplicate';  // 使用CSS类
-                        } else {
-                            // 更新成功
-                            const firstRow = table.rows[1];
-                            const resultCell = firstRow.cells[0];
-                            resultCell.textContent = '更新成功';
-                            resultCell.className = 'status-success';  // 使用CSS类
-                            alert("更新成功！");
-                        }
+                            // 显示状态
+                            resultCell.textContent = `${result.msg_type || ''}`;
+                            
+                            // 根据状态设置样式
+                            switch(result.msg_type) {
+                                case '失败':
+                                    resultCell.className = 'status-error';
+                                    break;
+                                case '重复':
+                                    resultCell.className = 'status-duplicate';
+                                    break;
+                                case '成功':
+                                    resultCell.className = 'status-success';
+                                    break;
+                            }
+                        });
+                        
+                        console.log("更新完成");
                     }).catch(err => {
                         console.error("更新失败:", err);
                         alert("更新失败，请检查控制台日志。");
@@ -239,16 +241,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
                 document.getElementById('logoutButton').addEventListener('click', () => {
                     console.log("退出登录");
-                    document.getElementById('app').innerHTML = `
-                        <h1>Login</h1>
-                        <input type="text" id="username" placeholder="Username">
-                        <input type="password" id="password" placeholder="Password">
-                        <button id="loginButton">登陆</button>
-                        <p id="status"></p>
-                    `;
-                    document.getElementById('loginButton').addEventListener('click', () => {
-                        // 重新调用登录逻辑
-                    });
+                    // 直接重新加载页面
+                    window.location.reload();
                 });
 
                 document.getElementById('toggleLogButton').addEventListener('click', () => {

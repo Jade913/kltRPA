@@ -55,9 +55,9 @@ func (a *App) Login(username, password string) string {
 	}
 }
 
-func (a *App) UpdateOmo(data []map[string]interface{}) error {
+func (a *App) UpdateOmo(data []map[string]interface{}) ([]map[string]interface{}, error) {
 	if a.omoInstance == nil {
-		return fmt.Errorf("未登录！")
+		return nil, fmt.Errorf("未登录！")
 	}
 	return a.omoInstance.UpdateOmo(data)
 }

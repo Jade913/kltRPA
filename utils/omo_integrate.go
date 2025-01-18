@@ -68,16 +68,18 @@ func (o *OmoIntegrate) Login() (bool, error) {
 	return false, nil
 }
 
-func (o *OmoIntegrate) UpdateOmo(data []map[string]interface{}) error {
+func (o *OmoIntegrate) UpdateOmo(data []map[string]interface{}) ([]map[string]interface{}, error) {
 	rpcUrl := fmt.Sprintf("https://%s/xmlrpc/2/object", o.server)
 	log.Printf("开始更新 OMO 系统，RPC URL: %s", rpcUrl)
 
 	client, err := xmlrpc.NewClient(rpcUrl, nil)
 	if err != nil {
 		log.Printf("创建 XML-RPC 客户端失败: %v", err)
-		return err
+		return nil, err
 	}
 	defer client.Close()
+
+	results := make([]map[string]interface{}, len(data)) // 预分配切片大小
 
 	for i, record := range data {
 		var result interface{}
@@ -93,12 +95,16 @@ func (o *OmoIntegrate) UpdateOmo(data []map[string]interface{}) error {
 		err = client.Call("execute_kw", args, &result)
 		if err != nil {
 			log.Printf("调用 create_customer 失败: %v", err)
-			return err
+			return nil, err
 		}
 
-		log.Printf("记录更新成功: %v, 结果: %v", record, result)
+		// 将结果转换为map并存储
+		if resultMap, ok := result.(map[string]interface{}); ok {
+			results[i] = resultMap
+			log.Printf("记录更新结果: %v", resultMap)
+		}
 	}
 
 	log.Println("所有记录已成功更新到 OMO 系统")
-	return nil
+	return results, nil
 }

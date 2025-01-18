@@ -1,3 +1,24 @@
+/* 添加或修改全局背景色 */
+html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #ebf7fa;
+}
+
+.top-right-buttons {
+    position: fixed; /* 使用 fixed 定位，使按钮相对于浏览器窗口定位 */
+    top: 30px; /* 距离窗口顶部 10px */
+    right: 10px; /* 距离窗口右侧 10px */
+    display: flex; /* 使用 flex 布局，使按钮水平排列 */
+    gap: 10px; /* 按钮之间的间距 */
+}
+ 
+.top-right-buttons button {
+    padding: 10px 20px; /* 按钮的内边距 */
+    font-size: 12px; /* 按钮的字体大小 */
+    cursor: pointer; /* 鼠标悬停时显示为手形 */
+}
+
 .login-container {
     max-width: 400px;
     margin: 50px auto;
@@ -8,7 +29,7 @@
 .form-group {
     margin: 20px 0;
     padding: 15px;
-    background: #f8f9fa;
+    background: #f5f7fb;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
@@ -24,8 +45,8 @@
     display: inline-block;
     padding: 6px 12px;
     margin-right: 10px;
-    background-color: #fff;
-    border: 1px solid #ced4da;
+    background-color: #f6f7fb;
+    border: 1px solid #c6dbf0;
     border-radius: 4px;
     cursor: pointer;
 }
@@ -142,19 +163,19 @@ h1 {
 /* 成功状态 */
 .status-success {
     color: #3aba58;
-    background-color: #e8f5e9 !important;
+    background-color: #c2efc5 !important;
 }
 
 /* 失败状态 */
 .status-error {
     color: #dc3545;
-    background-color: #ffebee !important;
+    background-color: #f6d9dd !important;
 }
 
 /* 重复状态 */
 .status-duplicate {
     color: #ffa000;
-    background-color: #fff3e0 !important;
+    background-color: #f6e5ca !important;
 }
 
 /* 响应式设计 */
