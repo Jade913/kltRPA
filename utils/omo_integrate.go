@@ -47,6 +47,13 @@ func (o *OmoIntegrate) Login() (bool, error) {
 
 	log.Printf("服务器返回结果类型: %T, 值: %v", result, result)
 
+	// 如果返回 false，说明登录失败（用户名或密码错误）
+	if v, ok := result.(bool); ok && !v {
+		log.Println("登录失败：用户名或密码错误")
+		return false, nil
+	}
+
+	// 处理成功登录的情况
 	switch v := result.(type) {
 	case int:
 		o.uid = v
@@ -59,13 +66,8 @@ func (o *OmoIntegrate) Login() (bool, error) {
 		return false, fmt.Errorf("unexpected return type: %T", v)
 	}
 
-	if o.uid != 0 {
-		log.Printf("登录成功，UID: %d", o.uid)
-		return true, nil
-	}
-
-	log.Println("登录失败，UID 为 0")
-	return false, nil
+	log.Printf("登录成功，UID: %d", o.uid)
+	return true, nil
 }
 
 func (o *OmoIntegrate) UpdateOmo(data []map[string]interface{}) ([]map[string]interface{}, error) {

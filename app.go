@@ -43,16 +43,16 @@ func (a *App) Login(username, password string) string {
 	omo := utils.NewOmoIntegrate("omo.kelote.com", "klt_omo", username, password)
 
 	success, err := omo.Login()
-	if success {
-		a.omoInstance = omo // 保存登录成功的实例
-		return "Login successful!"
-	} else {
-		if err != nil {
-			return fmt.Sprintf("Login failed: %v", err)
-		} else {
-			return "Invalid username or password."
-		}
+	if err != nil {
+		return fmt.Sprintf("登录失败: %v", err)
 	}
+
+	if !success {
+		return "用户名或密码错误"
+	}
+
+	a.omoInstance = omo // 保存登录成功的实例
+	return "登录成功！"
 }
 
 func (a *App) UpdateOmo(data []map[string]interface{}) ([]map[string]interface{}, error) {
