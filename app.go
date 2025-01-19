@@ -4,14 +4,12 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"io"
 	"kltRPA/logs"
 	"kltRPA/models"
 	"kltRPA/utils"
-	"net/http"
 	"os"
 	"path/filepath"
-	"sort"
+	"runtime"
 	"strings"
 )
 
@@ -94,65 +92,71 @@ func (a *App) GetLogs() (string, error) {
 	return fmt.Sprintf("%s", strings.Join(lines, "\n")), nil
 }
 
-// GetLatestTable returns the path of the latest table file
-func (a *App) GetLatestTable() (string, error) {
-	dir := "export_data/table-data"
-	files, err := os.ReadDir(dir)
-	if err != nil {
-		return "", fmt.Errorf("无法读取目录: %v", err)
-	}
-
-	// Convert []os.DirEntry to []os.FileInfo
-	fileInfos := make([]os.FileInfo, 0, len(files))
-	for _, file := range files {
-		info, err := file.Info()
-		if err != nil {
-			return "", fmt.Errorf("无法获取文件信息: %v", err)
-		}
-		fileInfos = append(fileInfos, info)
-	}
-
-	// 按修改时间排序文件
-	sort.Slice(fileInfos, func(i, j int) bool {
-		return fileInfos[i].ModTime().After(fileInfos[j].ModTime())
-	})
-
-	// 找到最新的表格文件
-	for _, fileInfo := range fileInfos {
-		if !fileInfo.IsDir() && filepath.Ext(fileInfo.Name()) == ".xlsx" {
-			return filepath.Join(dir, fileInfo.Name()), nil
-		}
-	}
-
-	return "", fmt.Errorf("没有找到表格文件")
-}
-
-// ServeFile serves a file from the given path
-func (a *App) ServeFile(w http.ResponseWriter, r *http.Request) {
-	filePath := r.URL.Query().Get("path")
-	if filePath == "" {
-		http.Error(w, "File path is required", http.StatusBadRequest)
-		return
-	}
-
-	file, err := os.Open(filePath)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("无法打开文件: %v", err), http.StatusInternalServerError)
-		return
-	}
-	defer file.Close()
-
-	// 使用 io.Copy 直接将文件内容写入响应
-	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-	if _, err := io.Copy(w, file); err != nil {
-		http.Error(w, fmt.Sprintf("无法读取文件: %v", err), http.StatusInternalServerError)
-	}
-}
-
 func (a *App) ImportTableFromExcel(filePath string) ([][]string, error) {
 	return utils.ImportTableFromExcel(filePath)
 }
 
 func (a *App) SaveFile(filePath string, data []byte) error {
 	return utils.SaveFile(filePath, data)
+}
+
+func (a *App) GetDownloadPath() string {
+	// 获取用户主目录
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("获取用户主目录失败: %v", err)
+		return ""
+	}
+
+	// 根据操作系统获取默认下载路径
+	var downloadDir string
+	switch runtime.GOOS {
+	case "windows":
+		downloadDir = filepath.Join(homeDir, "Downloads")
+	case "darwin": // macOS
+		downloadDir = filepath.Join(homeDir, "Downloads")
+	case "linux":
+		downloadDir = filepath.Join(homeDir, "Downloads")
+	default:
+		downloadDir = filepath.Join(homeDir, "Downloads")
+	}
+
+	absPath, err := filepath.Abs(downloadDir)
+	if err != nil {
+		fmt.Printf("获取下载目录绝对路径失败: %v", err)
+		return ""
+	}
+
+	fmt.Printf("Chrome 默认下载路径: %s\n", absPath)
+	return absPath
+}
+
+// 检查文件是否存在
+func (a *App) CheckResumeFile(name string, position string) (string, error) {
+	downloadDir := a.GetDownloadPath()
+	fmt.Printf("正在搜索目录: %s\n", downloadDir)
+	fmt.Printf("搜索简历: 姓名=%s, 岗位=%s\n", name, position)
+
+	files, err := os.ReadDir(downloadDir)
+	if err != nil {
+		fmt.Printf("读取目录失败: %v\n", err)
+		return "", fmt.Errorf("读取目录失败: %v", err)
+	}
+
+	for _, file := range files {
+		fileName := file.Name()
+		// 只检查PDF文件
+		if !strings.HasSuffix(strings.ToLower(fileName), ".pdf") {
+			continue
+		}
+
+		fmt.Printf("检查文件: %s\n", fileName)
+		// 检查文件名是否同时包含姓名和岗位
+		if strings.Contains(strings.ToLower(fileName), strings.ToLower(name)) &&
+			strings.Contains(strings.ToLower(fileName), strings.ToLower(position)) {
+			return filepath.Join(downloadDir, fileName), nil
+		}
+	}
+
+	return "", nil
 }

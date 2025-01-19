@@ -1,7 +1,7 @@
 import './style.css';
 import './app.css';
 import * as XLSX from 'xlsx';
-import { Login, GetLogs, RunRPA } from '../wailsjs/go/main/App';
+import { Login, GetLogs, RunRPA, GetDownloadPath } from '../wailsjs/go/main/App';
 import { UpdateOmo } from '../wailsjs/go/main/App';
 window.addEventListener("DOMContentLoaded", () => {
     console.log("DOM fully loaded and parsed");
@@ -326,7 +326,7 @@ function displayTable(jsonData, tableContainer) {
     tableContainer.innerHTML = filterHTML + html;
 
     // 添加筛选功能
-    document.getElementById('applyFilter').addEventListener('click', () => {
+    document.getElementById('applyFilter').addEventListener('click', async () => {
         const successOnly = document.getElementById('successOnly').checked;
         const campusFilter = document.getElementById('campusFilter').value.toLowerCase();
         const positionFilter = document.getElementById('positionFilter').value.toLowerCase();
@@ -334,15 +334,18 @@ function displayTable(jsonData, tableContainer) {
         const table = tableContainer.querySelector('table');
         const rows = Array.from(table.querySelectorAll('tr')).slice(1); // 跳过表头
         
-        // 用于存储筛选后的数据
+        // 获取下载路径
+        const downloadPath = await GetDownloadPath();
+        console.log("简历下载路径:", downloadPath);
+
+        // 筛选和检查文件
         const filteredData = [];
-        // 获取表头
         const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent);
         filteredData.push(headers);
 
-        rows.forEach(row => {
+        for (const row of rows) {
             const cells = row.cells;
-            const status = cells[0].textContent.trim(); // 第一列是状态
+            const status = cells[0].textContent.trim();
             const campus = cells[findColumnIndex('校区', table)].textContent.toLowerCase();
             const position = cells[findColumnIndex('应聘职位', table)].textContent.toLowerCase();
 
@@ -352,19 +355,36 @@ function displayTable(jsonData, tableContainer) {
 
             row.style.display = showRow ? '' : 'none';
 
-            // 如果行符合筛选条件，将其数据添加到 filteredData
             if (showRow) {
                 const rowData = Array.from(cells).map(cell => cell.textContent);
                 filteredData.push(rowData);
+            
+                // 获取简历相关信息
+                const name = cells[findColumnIndex('姓名', table)].textContent;
+                const jobPosition = cells[findColumnIndex('应聘职位', table)].textContent;
+                const campus = cells[findColumnIndex('校区', table)].textContent;
+            
+                console.log("正在检查简历:", {
+                    name: name,
+                    position: jobPosition,
+                    campus: campus
+                });
+            
+                try {
+                    const filePath = await window.go.main.App.CheckResumeFile(name, jobPosition);
+                    if (filePath) {
+                        console.log(`✅ 定位到 ${name} 的简历在：${filePath}`);
+                    } else {
+                        console.log(`❌ 未找到 ${name} 的简历文件`);
+                    }
+                } catch (err) {
+                    console.error(`检查 ${name} 的简历文件时出错:`, err);
+                }
             }
-        });
+            
+        }
 
-        // 在控制台输出筛选后的数据
-        console.log("筛选条件:", {
-            successOnly,
-            campusFilter,
-            positionFilter
-        });
+        console.log("筛选条件:", { successOnly, campusFilter, positionFilter });
         console.log("筛选后的数据:", filteredData);
     });
 }
