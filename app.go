@@ -1,9 +1,11 @@
 package main
 
 import (
+	"archive/zip"
 	"bufio"
 	"context"
 	"fmt"
+	"io"
 	"kltRPA/logs"
 	"kltRPA/models"
 	"kltRPA/utils"
@@ -11,6 +13,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 )
 
 // App struct
@@ -132,10 +135,10 @@ func (a *App) GetDownloadPath() string {
 }
 
 // 检查文件是否存在
-func (a *App) CheckResumeFile(name string, position string) (string, error) {
+func (a *App) CheckResumeFile(name string, position string, campus string) (string, error) {
 	downloadDir := a.GetDownloadPath()
 	fmt.Printf("正在搜索目录: %s\n", downloadDir)
-	fmt.Printf("搜索简历: 姓名=%s, 岗位=%s\n", name, position)
+	fmt.Printf("搜索简历: 姓名=%s, 岗位=%s, 校区=%s\n", name, position, campus)
 
 	files, err := os.ReadDir(downloadDir)
 	if err != nil {
@@ -145,18 +148,80 @@ func (a *App) CheckResumeFile(name string, position string) (string, error) {
 
 	for _, file := range files {
 		fileName := file.Name()
-		// 只检查PDF文件
-		if !strings.HasSuffix(strings.ToLower(fileName), ".pdf") {
+		// 只检查带有"简历"字样的PDF文件
+		if !strings.HasSuffix(strings.ToLower(fileName), ".pdf") ||
+			!strings.Contains(strings.ToLower(fileName), "简历") {
 			continue
 		}
 
 		fmt.Printf("检查文件: %s\n", fileName)
-		// 检查文件名是否同时包含姓名和岗位
+		// 检查文件名是否同时包含姓名、岗位和校区
 		if strings.Contains(strings.ToLower(fileName), strings.ToLower(name)) &&
-			strings.Contains(strings.ToLower(fileName), strings.ToLower(position)) {
+			strings.Contains(strings.ToLower(fileName), strings.ToLower(position)) &&
+			strings.Contains(strings.ToLower(fileName), strings.ToLower(campus)) {
 			return filepath.Join(downloadDir, fileName), nil
 		}
 	}
 
 	return "", nil
+}
+
+// PackResumes 打包简历
+func (a *App) PackResumes(groupedData map[string]map[string][]string) (string, error) {
+	// 创建临时目录用于存放打包文件
+	tempDir := filepath.Join(a.GetDownloadPath(), "简历打包")
+	if err := os.MkdirAll(tempDir, 0755); err != nil {
+		return "", fmt.Errorf("创建临时目录失败: %v", err)
+	}
+
+	// 创建zip文件
+	timestamp := time.Now().Format("20060102_150405")
+	zipPath := filepath.Join(tempDir, fmt.Sprintf("简历_%s.zip", timestamp))
+	zipFile, err := os.Create(zipPath)
+	if err != nil {
+		return "", fmt.Errorf("创建zip文件失败: %v", err)
+	}
+	defer zipFile.Close()
+
+	zipWriter := zip.NewWriter(zipFile)
+	defer zipWriter.Close()
+
+	// 遍历校区
+	for campus, positions := range groupedData {
+		// 遍历岗位
+		for position, files := range positions {
+			// 创建校区/岗位目录
+			dirPath := filepath.Join(campus, position)
+
+			// 遍历文件
+			for _, filePath := range files {
+				// 读取源文件
+				srcFile, err := os.Open(filePath)
+				if err != nil {
+					fmt.Printf("打开文件失败 %s: %v\n", filePath, err)
+					continue
+				}
+				defer srcFile.Close()
+
+				// 在zip中创建文件
+				fileName := filepath.Base(filePath)
+				zipPath := filepath.Join(dirPath, fileName)
+				writer, err := zipWriter.Create(zipPath)
+				if err != nil {
+					fmt.Printf("创建zip条目失败 %s: %v\n", zipPath, err)
+					continue
+				}
+
+				// 复制文件内容
+				if _, err := io.Copy(writer, srcFile); err != nil {
+					fmt.Printf("复制文件内容失败 %s: %v\n", filePath, err)
+					continue
+				}
+
+				fmt.Printf("已添加文件: %s\n", zipPath)
+			}
+		}
+	}
+
+	return zipPath, nil
 }

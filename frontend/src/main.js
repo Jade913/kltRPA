@@ -320,6 +320,7 @@ function displayTable(jsonData, tableContainer) {
                 <input type="text" id="positionFilter" placeholder="输入岗位">
             </div>
             <button id="applyFilter">确认筛选</button>
+            <button id="packResumeButton">打包简历</button>
         </div>
     `;
 
@@ -371,7 +372,7 @@ function displayTable(jsonData, tableContainer) {
                 });
             
                 try {
-                    const filePath = await window.go.main.App.CheckResumeFile(name, jobPosition);
+                    const filePath = await window.go.main.App.CheckResumeFile(name, jobPosition, campus);
                     if (filePath) {
                         console.log(`✅ 定位到 ${name} 的简历在：${filePath}`);
                     } else {
@@ -386,6 +387,58 @@ function displayTable(jsonData, tableContainer) {
 
         console.log("筛选条件:", { successOnly, campusFilter, positionFilter });
         console.log("筛选后的数据:", filteredData);
+    });
+
+    // 在筛选栏中添加打包按钮的事件监听
+    document.getElementById('packResumeButton').addEventListener('click', async () => {
+        console.log("开始打包简历...");
+        
+        // 获取表格中的所有数据
+        const table = document.querySelector('table');
+        const rows = Array.from(table.querySelectorAll('tr')).slice(1); // 跳过表头
+        
+        // 按校区和岗位组织数据
+        const groupedData = {};
+        
+        for (const row of rows) {
+            const cells = row.cells;
+            const name = cells[findColumnIndex('姓名', table)].textContent;
+            const jobPosition = cells[findColumnIndex('应聘职位', table)].textContent;
+            const campus = cells[findColumnIndex('校区', table)].textContent;
+            
+            // 检查简历文件
+            try {
+                const filePath = await window.go.main.App.CheckResumeFile(name, jobPosition, campus);
+                if (filePath) {
+                    // 初始化校区对象
+                    if (!groupedData[campus]) {
+                        groupedData[campus] = {};
+                    }
+                    // 初始化岗位数组
+                    if (!groupedData[campus][jobPosition]) {
+                        groupedData[campus][jobPosition] = [];
+                    }
+                    // 添加文件路径
+                    groupedData[campus][jobPosition].push(filePath);
+                }
+            } catch (err) {
+                console.error(`获取 ${name} 的简历文件时出错:`, err);
+            }
+        }
+        
+        console.log("已组织的简历数据:", groupedData);
+        
+        // 调用后端进行打包
+        try {
+            const result = await window.go.main.App.PackResumes(groupedData);
+            if (result) {
+                console.log("简历打包成功:", result);
+                alert("简历打包成功！");
+            }
+        } catch (err) {
+            console.error("打包简历时出错:", err);
+            alert("打包简历时出错: " + err);
+        }
     });
 }
 
