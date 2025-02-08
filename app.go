@@ -169,7 +169,7 @@ func (a *App) CheckResumeFile(name string, position string, campus string) (stri
 // PackResumes 打包简历
 func (a *App) PackResumes(groupedData map[string]map[string][]string) (string, error) {
 	// 创建临时目录用于存放打包文件
-	tempDir := filepath.Join(a.GetDownloadPath(), "简历打包")
+	tempDir := filepath.Join(a.GetDownloadPath(), "KLTRPA简历打包")
 	if err := os.MkdirAll(tempDir, 0755); err != nil {
 		return "", fmt.Errorf("创建临时目录失败: %v", err)
 	}

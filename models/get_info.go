@@ -524,7 +524,7 @@ func extractAndSaveResume(ctx context.Context, jobTitle, jobLocation, phoneNumbe
 		Number:    *resumeNum + 1,
 		Course:    utils.GetCourse(jobTitle),
 		Phone:     phoneNumber,
-		Campus:    jobLocation,
+		Campus:    utils.GetCampus(jobTitle, jobLocation),
 		Name:      name,
 		Gender:    "", // 性别暂时留空
 		Email:     email,

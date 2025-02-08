@@ -33,6 +33,8 @@ window.addEventListener("DOMContentLoaded", () => {
                 if (result === "登录成功！") {
                     document.getElementById('app').innerHTML = `
                         <h1>自动化处理简历</h1>
+                        <button id="sayHiButton">打招呼</button>
+                        <button id="dealNewGreetButton">处理新招呼</button>
                         <button id="selectCampusButton">选择校区</button>
                         <button id="fetchResumeButton">抓取&下载简历</button>
                         <div class="form-group">
