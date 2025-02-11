@@ -39,6 +39,14 @@ func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }
 
+func (a *App) SayHi() string {
+	err := models.SayHi()
+	if err != nil {
+		return fmt.Sprintf("打招呼失败: %v", err)
+	}
+	return "打招呼成功"
+}
+
 // omo登录
 func (a *App) Login(username, password string) string {
 	omo := utils.NewOmoIntegrate("omo.kelote.com", "klt_omo", username, password)

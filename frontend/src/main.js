@@ -2,7 +2,7 @@ import './style.css';
 import './app.css';
 import * as XLSX from 'xlsx';
 import { Login, GetLogs, RunRPA, GetDownloadPath } from '../wailsjs/go/main/App';
-import { UpdateOmo } from '../wailsjs/go/main/App';
+import { UpdateOmo, SayHi } from '../wailsjs/go/main/App';
 window.addEventListener("DOMContentLoaded", () => {
     console.log("DOM fully loaded and parsed");
 
@@ -33,8 +33,7 @@ window.addEventListener("DOMContentLoaded", () => {
                 if (result === "登录成功！") {
                     document.getElementById('app').innerHTML = `
                         <h1>自动化处理简历</h1>
-                        <button id="sayHiButton">打招呼</button>
-                        <button id="dealNewGreetButton">处理新招呼</button>
+                        <button id="sayHiButton">打招呼&处理新招呼</button>
                         <button id="selectCampusButton">选择校区</button>
                         <button id="fetchResumeButton">抓取&下载简历</button>
                         <div class="form-group">
@@ -57,6 +56,15 @@ window.addEventListener("DOMContentLoaded", () => {
                     // 清空日志内容
                     const logContentElement = document.getElementById('logContent');
                     logContentElement.innerText = '';
+
+                    document.getElementById('sayHiButton').addEventListener('click', () => {
+                        console.log("打招呼");
+                        SayHi().then(result => {
+                            console.log("打招呼结果:", result);
+                        }).catch(err => {
+                            console.error("打招呼失败:", err);
+                        });
+                    });
 
                     let selectedCampuses = []; // 用于存储选中的校区
 

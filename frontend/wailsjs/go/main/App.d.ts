@@ -19,4 +19,6 @@ export function RunRPA(arg1:Array<string>):Promise<void>;
 
 export function SaveFile(arg1:string,arg2:Array<number>):Promise<void>;
 
+export function SayHi():Promise<string>;
+
 export function UpdateOmo(arg1:Array<{[key: string]: any}>):Promise<Array<{[key: string]: any}>>;

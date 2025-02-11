@@ -11,12 +11,13 @@ func RunRPA(selectedCampuses []string) {
 	log.Println("开始执行RPA...")
 
 	// 初始化 Chrome
-	ctx, cancel, err := utils.InitChrome()
+	chromeManager := utils.GetChromeManager()
+	ctx, err := chromeManager.EnsureChrome()
+
 	if err != nil {
 		log.Printf("初始化 Chrome 失败: %v", err)
 		return
 	}
-	defer cancel()
 
 	// 检查登录状态
 	log.Println("正在检查登录状态...")

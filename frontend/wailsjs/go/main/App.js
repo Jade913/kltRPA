@@ -38,6 +38,10 @@ export function SaveFile(arg1, arg2) {
   return window['go']['main']['App']['SaveFile'](arg1, arg2);
 }
 
+export function SayHi() {
+  return window['go']['main']['App']['SayHi']();
+}
+
 export function UpdateOmo(arg1) {
   return window['go']['main']['App']['UpdateOmo'](arg1);
 }
