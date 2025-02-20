@@ -34,15 +34,17 @@ func SayHi() error {
 	}
 
 	// 执行打招呼逻辑
-	if err := doSayHi(ctx); err != nil {
-		log.Printf("打招呼失败: %v", err)
-		return err
-	}
+	// if err := doSayHi(ctx); err != nil {
+	// 	log.Printf("打招呼失败: %v", err)
+	// 	return err
+	// }
 
 	if err := DealNewGreet(ctx); err != nil {
 		log.Printf("处理新招呼失败: %v", err)
 		return err
 	}
+
+	chromeManager.CloseChrome()
 
 	return nil
 }

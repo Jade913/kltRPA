@@ -11,8 +11,8 @@ window.addEventListener("DOMContentLoaded", () => {
     const statusElement = document.getElementById("status");
 
     if (usernameElement && passwordElement) {
-        usernameElement.value = "wujinxuan@kelote.com";
-        passwordElement.value = "chill000";
+        usernameElement.value = "huanglei@kelote.com";
+        passwordElement.value = "kelote123123";
         console.log("默认账号&密码");
     } else {
         console.error("账号&密码未找到");
@@ -33,7 +33,7 @@ window.addEventListener("DOMContentLoaded", () => {
                 if (result === "登录成功！") {
                     document.getElementById('app').innerHTML = `
                         <h1>自动化处理简历</h1>
-                        <button id="sayHiButton">打招呼&处理新招呼</button>
+                        <button id="sayHiButton">处理新招呼</button>
                         <button id="selectCampusButton">选择校区</button>
                         <button id="fetchResumeButton">抓取&下载简历</button>
                         <div class="form-group">
@@ -172,8 +172,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
                         // 字段映射表
                         const fieldMapping = {
-                            "序号": "row_no",
-                            "简历编号": "resumeNumber",
+                            // "序号": "row_no",
+                            // "简历编号": "resumeNumber",
                             "意向课程": "regit_course",  
                             "手机": "mobile_phone",
                             "校区": "campus_id",         
@@ -193,11 +193,11 @@ window.addEventListener("DOMContentLoaded", () => {
                         const records = savedJsonData.slice(1).map((row, index) => {
                             const record = {};
                             headers.forEach((header, colIndex) => {
-                                if (fieldMapping[header]) {
+                                if (fieldMapping[header]) {  
                                     record[fieldMapping[header]] = row[colIndex] || '';
                                 }
                             });
-                            record['row_no'] = index + 1;
+                            // record['row_no'] = index + 1;
                             return record;
                         });
 

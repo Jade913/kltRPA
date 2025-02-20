@@ -661,7 +661,7 @@ func DownloadResume(ctx context.Context, selectedCampuses []string, filePath str
 	return nil
 }
 
-// setFilters 设置筛选条件（有电话、未加标签）
+// setFilters 设置筛选条件（有电话、未加标签、未看过）
 func setFilters(ctx context.Context) error {
 	// 筛选联系方式
 	err := runWithTimeout(ctx,
@@ -691,6 +691,17 @@ func setFilters(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("设置标签筛选失败: %v", err)
 	}
+
+	// 点击未看过复选框
+	err = runWithTimeout(ctx,
+		chromedp.WaitVisible(".not-read"),
+		chromedp.Sleep(500*time.Millisecond),
+		chromedp.Click(".not-read .km-checkbox__icon"),
+	)
+	if err != nil {
+		log.Println("点击未读复选框失败")
+	}
+	time.Sleep(1 * time.Second)
 
 	return nil
 }
