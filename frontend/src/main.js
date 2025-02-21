@@ -220,6 +220,9 @@ window.addEventListener("DOMContentLoaded", () => {
                                     case '重复':
                                         resultCell.className = 'status-duplicate';
                                         break;
+                                    case '重置':
+                                        resultCell.className = 'status-success';
+                                        break;
                                     case '成功':
                                         resultCell.className = 'status-success';
                                         break;
@@ -360,7 +363,7 @@ function displayTable(jsonData, tableContainer) {
             const campus = cells[findColumnIndex('校区', table)].textContent.toLowerCase();
             const position = cells[findColumnIndex('应聘职位', table)].textContent.toLowerCase();
 
-            const showRow = (!successOnly || status === '成功') &&
+            const showRow = (!successOnly || status === '成功' || status === '重置') &&
                           (!campusFilter || campus.includes(campusFilter)) &&
                           (!positionFilter || position.includes(positionFilter));
 
