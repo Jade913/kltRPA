@@ -10,12 +10,29 @@ window.addEventListener("DOMContentLoaded", () => {
     const passwordElement = document.getElementById("password");
     const statusElement = document.getElementById("status");
 
-    if (usernameElement && passwordElement) {
-        usernameElement.value = "huanglei@kelote.com";
-        passwordElement.value = "kelote123123";
-        console.log("默认账号&密码");
+    // 添加记住密码复选框
+    const rememberMeHTML = `
+        <div class="remember-me">
+            <input type="checkbox" id="rememberMe">
+            <label for="rememberMe">记住账号密码</label>
+        </div>
+    `;
+    passwordElement.insertAdjacentHTML('afterend', rememberMeHTML);
+    const rememberMeCheckbox = document.getElementById("rememberMe");
+
+    // 从 localStorage 获取保存的账号密码
+    const savedUsername = localStorage.getItem("username");
+    const savedPassword = localStorage.getItem("password");
+    const rememberMe = localStorage.getItem("rememberMe") === "true";
+
+    if (rememberMe && savedUsername && savedPassword) {
+        usernameElement.value = savedUsername;
+        passwordElement.value = savedPassword;
+        rememberMeCheckbox.checked = true;
     } else {
-        console.error("账号&密码未找到");
+        usernameElement.value = "";
+        passwordElement.value = "";
+        rememberMeCheckbox.checked = false;
     }
 
     const loginButton = document.getElementById("loginButton");
@@ -23,7 +40,19 @@ window.addEventListener("DOMContentLoaded", () => {
         loginButton.addEventListener("click", () => {
             const username = usernameElement.value;
             const password = passwordElement.value;
+            const rememberMe = rememberMeCheckbox.checked;
             console.log(`尝试登录，用户名: ${username}`);
+
+            // 根据复选框状态保存或清除账号密码
+            if (rememberMe) {
+                localStorage.setItem("username", username);
+                localStorage.setItem("password", password);
+                localStorage.setItem("rememberMe", "true");
+            } else {
+                localStorage.removeItem("username");
+                localStorage.removeItem("password");
+                localStorage.removeItem("rememberMe");
+            }
 
             Login(username, password).then(result => {
                 console.log("登录结果:", result);
@@ -201,12 +230,12 @@ window.addEventListener("DOMContentLoaded", () => {
                             return record;
                         });
 
-                        console.log("发送的数据:", records);  // 调试用
+                        console.log("发送的数据:", records);  
 
                         UpdateOmo(records).then((results) => {
                             // 更新每一行的结果
                             results.forEach((result, index) => {
-                                const row = table.rows[index + 1];  // +1 因为第一行是表头
+                                const row = table.rows[index + 1];  
                                 const resultCell = row.cells[0];
                                 
                                 // 显示状态

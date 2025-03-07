@@ -31,43 +31,43 @@ func DealNewGreet(ctx context.Context) error {
 	log.Println("成功点击【人才管理】")
 
 	// 点击年龄筛选
-	// err = runWithTimeout(ctx,
-	// 	chromedp.Click(".age-selector"),
-	// 	chromedp.WaitVisible(".km-select__dropdown"),
-	// )
-	// if err != nil {
-	// 	return fmt.Errorf("点击年龄筛选失败: %v", err)
-	// }
+	err = runWithTimeout(ctx,
+		chromedp.Click(".age-selector"),
+		chromedp.WaitVisible(".km-select__dropdown"),
+	)
+	if err != nil {
+		return fmt.Errorf("点击年龄筛选失败: %v", err)
+	}
 
-	// // 选择年龄范围
-	// targetAges := []string{"16-25岁", "26-30岁", "31-35岁", "36-40岁"}
-	// for _, age := range targetAges {
-	// 	err = runWithTimeout(ctx,
-	// 		chromedp.Click(fmt.Sprintf(`.km-select__dropdown .km-option .km-option__label div[title="%s"]`, age)),
-	// 	)
-	// 	if err != nil {
-	// 		log.Printf("选择年龄 %s 失败: %v", age, err)
-	// 		continue
-	// 	}
-	// 	log.Printf("已选择年龄：%s", age)
-	// 	time.Sleep(1 * time.Second)
-	// }
+	// 选择年龄范围
+	targetAges := []string{"16-25岁", "26-30岁", "31-35岁", "36-40岁"}
+	for _, age := range targetAges {
+		err = runWithTimeout(ctx,
+			chromedp.Click(fmt.Sprintf(`.km-select__dropdown .km-option .km-option__label div[title="%s"]`, age)),
+		)
+		if err != nil {
+			log.Printf("选择年龄 %s 失败: %v", age, err)
+			continue
+		}
+		log.Printf("已选择年龄：%s", age)
+		time.Sleep(1 * time.Second)
+	}
 
-	// // 点击确定按钮
-	// err = runWithTimeout(ctx,
-	// 	chromedp.Click(".km-select__dropdown-footer button.km-button--filled"),
-	// )
+	// 点击确定按钮
+	err = runWithTimeout(ctx,
+		chromedp.Click(".km-select__dropdown-footer button.km-button--filled"),
+	)
 
-	// if err != nil {
-	// 	return fmt.Errorf("点击年龄确定按钮失败: %v", err)
-	// }
-	// log.Println("筛选年龄成功")
-	// time.Sleep(1 * time.Second)
+	if err != nil {
+		return fmt.Errorf("点击年龄确定按钮失败: %v", err)
+	}
+	log.Println("筛选年龄成功")
+	time.Sleep(1 * time.Second)
 
 	// 点击学历筛选
 	err = runWithTimeout(ctx,
 		chromedp.Click(".edu-selector"),
-		chromedp.WaitVisible(".km-select__dropdown"),
+		// chromedp.WaitVisible(".km-select__dropdown"),
 	)
 	if err != nil {
 		return fmt.Errorf("点击学历筛选失败: %v", err)
@@ -88,7 +88,8 @@ func DealNewGreet(ctx context.Context) error {
 
 	// 点击确定按钮
 	err = runWithTimeout(ctx,
-		chromedp.Click(".km-select__dropdown-footer button.km-button--primary"),
+		// chromedp.Click(".km-select__dropdown-footer button.km-button--primary"),
+		chromedp.Evaluate(`document.querySelectorAll('.km-select__dropdown-footer button.km-button--filled')[1].click()`, nil), // 点击第二个确定按钮
 	)
 	if err != nil {
 		return fmt.Errorf("点击确定按钮失败: %v", err)

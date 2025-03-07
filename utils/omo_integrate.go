@@ -110,3 +110,51 @@ func (o *OmoIntegrate) UpdateOmo(data []map[string]interface{}) ([]map[string]in
 	log.Println("所有记录已成功更新到 OMO 系统")
 	return results, nil
 }
+
+func (o *OmoIntegrate) GetCampuses() ([]map[string]interface{}, error) {
+	rpcUrl := fmt.Sprintf("https://%s/xmlrpc/2/object", o.server)
+	log.Printf("开始获取校区，RPC URL: %s", rpcUrl)
+
+	client, err := xmlrpc.NewClient(rpcUrl, nil)
+	if err != nil {
+		log.Printf("创建 XML-RPC 客户端失败: %v", err)
+		return nil, err
+	}
+	defer client.Close()
+
+	var result interface{}
+	// 使用空的 domain 参数来获取所有校区
+	args := []interface{}{
+		o.db,
+		o.uid,
+		o.password,
+		"klteducat.campus",
+		"search_read",
+		[]interface{}{},
+		[]string{"id", "name"}, // 需要返回的字段
+	}
+
+	err = client.Call("execute_kw", args, &result)
+	if err != nil {
+		log.Printf("调用 search_read 失败: %v", err)
+		return nil, err
+	}
+
+	// 将结果转换为 []map[string]interface{}
+	campuses, ok := result.([]interface{})
+	if !ok {
+		log.Printf("获取校区结果类型不正确: %T", result)
+		return nil, fmt.Errorf("unexpected return type: %T", result)
+	}
+
+	// 转换为 []map[string]interface{}
+	var campusList []map[string]interface{}
+	for _, campus := range campuses {
+		if campusMap, ok := campus.(map[string]interface{}); ok {
+			campusList = append(campusList, campusMap)
+		}
+	}
+
+	log.Printf("成功获取校区: %v", campusList)
+	return campusList, nil
+}
